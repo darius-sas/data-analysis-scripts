@@ -1,0 +1,43 @@
+---
+title: "Software Architecture Quality report on Architectural Smells in <Project-Name>"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+source("report-plotting.R")
+df.smells <- read.csv("/home/fenn/git/data/trackASOutput/tics/smell-characteristics-consecOnly.csv")
+df.sizes <- read.csv("/home/fenn/git/data/trackASOutput/tics/project-sizes-consecOnly.csv")
+df <- cleanData(df.smells, df.sizes)
+df.smells <- df$df.smells
+df.sizes <- df$df.sizes
+```
+
+# Introduction
+Explain what this report is meant for and introduce to AS (perhaps link to an explanation)
+
+# Generic report
+Some numbers and plots that report generic values (e.g n. of smells over time by type, n. of smells in last version by type)
+
+```{r}
+plotNumOfSmellsOverTimeByType(df.smells)
+```
+
+```{r}
+plotNumOfSmellsLastVersionByType(df.smells)
+```
+
+```{r}
+plotComponentCountPerVersion(df.sizes)
+```
+
+## System evolution
+
+
+# Specific report
+e.g. Component affected by most smell, oldest smell (interest paid)
+
+# Suggested Refactoring Actions
+Which smells/components to refactor first, why,
+
+
+
