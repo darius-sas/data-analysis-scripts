@@ -1,8 +1,17 @@
 ---
 title: "Software Architecture Quality report on Architectural Smells in <Project-Name>"
-output: html_notebook
+output: 
+  html_notebook: 
+    number_sections: yes
+    theme: cosmo
 ---
-
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 source("report-plotting.R")
 df.smells <- read.csv("/home/fenn/git/data/trackASOutput/tics/smell-characteristics-consecOnly.csv")
@@ -26,6 +35,7 @@ plotNumOfSmellsOverTimeByType(df.smells)
 plotNumOfSmellsLastVersionByType(df.smells)
 ```
 
+
 ```{r}
 plotComponentCountPerVersion(df.sizes)
 ```
@@ -35,6 +45,10 @@ plotComponentCountPerVersion(df.sizes)
 
 # Specific report
 e.g. Component affected by most smell, oldest smell (interest paid)
+
+```{r pander}
+knitr::kable(getTop5OldestSmellsByType(df.smells))
+```
 
 # Suggested Refactoring Actions
 Which smells/components to refactor first, why,

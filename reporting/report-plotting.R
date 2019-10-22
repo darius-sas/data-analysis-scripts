@@ -62,5 +62,38 @@ plotComponentCountPerVersion <- function(df.sizes){
     scale_x_date(breaks = pretty) +
     labs(title=paste("Number of classes and packages per version"),
          x = "Versions",
-         y = "Count")
+         y = "Count",
+         color="")
 }
+
+getTop5OldestSmellsByType <- function(df.smells){
+  maxRow <- which.max(df.smells$versionPosition)
+  lastVersion <- df.smells$version[maxRow]
+  lastVersionDate <- df.smells$versionDate[maxRow]
+  
+  df.smells <- df.smells %>% filter(version == lastVersion)
+  
+  df.smells.curr <- df.smells %>% 
+    group_by(typeOfSmell) %>%
+    arrange(desc(age)) %>%
+    top_n(5, age) %>% 
+    select(uniqueSmellID)
+  
+  oldestSmells <- right_join(df.smells, df.smells.curr, by="uniqueSmellID")  %>%
+    arrange(typeOfSmell.x, desc(age)) %>%
+    select(age, affectedElements, typeOfSmell.x, size, numOfEdges, shape)
+  
+  return(oldestSmells)
+}
+
+
+
+
+
+
+
+
+
+
+
+
