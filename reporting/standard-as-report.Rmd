@@ -1,57 +1,109 @@
 ---
-title: "Software Architecture Quality report on Architectural Smells in <Project-Name>"
-output: 
-  html_notebook: 
-    number_sections: yes
+title: Software Architecture Quality report based on Architectural Smells detected
+  in TiCS
+output:
+  html_notebook:
+    code_folding: hide
+    highlight: tango
     theme: cosmo
 ---
 <style type="text/css">
 .main-container {
-  max-width: 1800px;
+  max-width: 950px;
   margin-left: auto;
   margin-right: auto;
 }
 </style>
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 source("report-plotting.R")
+library(knitr)
 df.smells <- read.csv("/home/fenn/git/data/trackASOutput/tics/smell-characteristics-consecOnly.csv")
 df.sizes <- read.csv("/home/fenn/git/data/trackASOutput/tics/project-sizes-consecOnly.csv")
+df.comps <- read.csv("/home/fenn/git/data/trackASOutput/tics/affected-components-consecOnly.csv");
 df <- cleanData(df.smells, df.sizes)
 df.smells <- df$df.smells
 df.sizes <- df$df.sizes
 ```
 
+# Executive summary
+The present report is intended as a demo of the types of data and insights the ATD toolbox of the SDK4ED project is capable of retrieving from Java and C/C++ projects.
+For the sake of brevity, this report will contain only some excerpts of the overall data extracted by analysing the TiCS project.
+
 # Introduction
-Explain what this report is meant for and introduce to AS (perhaps link to an explanation)
+The architectural smells considered for this analysis are *Cyclic dependencies* (at both package and class level), *Hublike dependencies* (at both package and class level), *Unstable dependencies* (at package level only), and *God component* (at package level only).
+We will use the term **component** to refer to both classes or package indistiguishibly.
 
-# Generic report
-Some numbers and plots that report generic values (e.g n. of smells over time by type, n. of smells in last version by type)
+The definitions and implications of these smells are briefly summarised below:
 
+* *Cyclic dependencies* 
+  * **Definition**: several components that depend on other components that eventually depend on the starting components, creating a cycle of dependencies.
+  * **Implications**: increases complexity, increases coupling, lowers maintainability, testability, and deployment.
+  
+* *Hublike dependencies*
+  * **Definition**: a central component that has a lot (i.e. way more than the average in the system) of incoming and outgoing dependencies (i.e. components that depend upon it and components that are depended upon by it), thus acting as a "dependency hub".
+  * **Implications**: centralizes logic, conceals the actual dependecies, increases change propagation chances, increases complexity, and lowers maintanability,. 
+  
+* *Unstable dependencies*
+  * **Definition**: a central package with a number of outgoing dependencies (classes it depends upon) that are less stable (stable = likelyhood to not change, see Robert Martin's 1994 [paper](https://www.cin.ufpe.br/~alt/mestrado/oodmetrc.pdf) for more details) than itself.
+  * **Implications**: increases change proneness due to ripple effects from less stable dependencies.
+  
+* *God Component*
+  * **Definition**: a package containing too many classes with too many lines of code. The comparison is made using either a benchmark of more than 100 open source systems, or the distribution of the lines of code per package of the system itself.
+  * **Implications**: centralizes logic, increases complexity, and lowers maintainability.
+  
+Further details and explanations are available upon request to `d.d.sas@rug.nl`.
+
+# General statistics
+This section reports general information on the data collected using plots.
+
+### Architectural smells in the system
+The following plots reports the number of smells detected from 2012 up until 2018-09-28 (the last version analysed).
 ```{r}
 plotNumOfSmellsOverTimeByType(df.smells)
 ```
 
-```{r}
+The number of architectural smells in the latest version are depicted below.
+```{r fig.height=6}
 plotNumOfSmellsLastVersionByType(df.smells)
 ```
 
-
+To better interpret these numbers, here is the evolution of the system in terms of # of classes and # of packages over time.
 ```{r}
 plotComponentCountPerVersion(df.sizes)
 ```
 
-## System evolution
-
-
-# Specific report
-e.g. Component affected by most smell, oldest smell (interest paid)
-
-```{r pander}
-knitr::kable(getTop5OldestSmellsByType(df.smells))
+### Survival probability of Architectural smells
+The smells in the system usually don't persist forever. The following plot shows their survival probability after their introduction. The $x$ axis shows time as the number of commits since introduction, each spanning two weeks. The vertical dashed line shows estimated survival time with 50% probability.
+This kind of information allows to select what types of smells are more suitable to being refactored, avoiding refactoring smells that are "transient".
+```{r}
+plotSurvivalProbabilities(df.smells)
 ```
 
-# Suggested Refactoring Actions
-Which smells/components to refactor first, why,
+# Architectural smells detected in the last version
+Below there is a selection of the oldest smells detected in the system and still present in the last version analysed. 
+The Age columns refers to the number of consecutive commits (each spanning 2 weeks) this smell was detected in and it is still present in the last version analysed.
+The cycle smells were filtered to exclude cycles between two elements (since these are usually the result of intentional design).
+The Number of Class/Pack. column denotes the number of components involved in the smell, whereas the Number of Depend. refers to the number of dependencies among the elements affected (an proxy for complexity).
+```{r}
+kable(getTopOldestSmellsByType(df.smells))
+```
+
+The next table shows the packages and classes that are affected by most smells dividing by type.
+```{r}
+kable(getComponentsAffectedByMostSmells(df.comps, df.smells))
+```
+
+# Data interpretation and final considerations
+This section quickly reports the classes and packages with the highest number of smells detected in the last version.
+
+Some of packages with high levels of *architectural technical debt principal* (based only the number of smells in the case of this report) are:
+ 
+ * `com.tiobe.web.entities` This package is both a *Hublike Dependency* and a *God Component*. Additionally, many of the oldest and more complex cycles are within/or include these packages.
+ * `com.tiobe.web` This package is both a *Hublike Dependency* and an *Unstable Dependency*, making it a very central part of the system that is prone to change with a lot of delegated functionality (which is reasonable, for a high-level package) and a lot of other functionalities delegated to it (not so reasonable, for a high-level package.
+ 
+In conclusion, this brief report has provided some insights on the state of (some of) the architectural smells affecting the system and it is not a complete report by any means.
+
+
 
 
 
